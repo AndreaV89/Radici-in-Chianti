@@ -24,37 +24,42 @@ import WeatherIcon from "./WeatherIcon";
 interface SubMenuItem {
   label: string;
   linkTo: string;
-  imageUrl?: string; // La '?' significa che è opzionale
-  isButton?: boolean; // Anche questa è opzionale
+  imageUrl?: string;
+  isButton?: boolean;
 }
 
 const menuItems = {
   ilChianti: {
     title: "Il Chianti",
-    defaultImageUrl: "/images/escursioni.jpg",
+    defaultImageUrl: "/images/chianti.jpg",
     subItems: [
       {
         label: "Storia e Tradizione",
         linkTo: "/storia-e-tradizione",
-        imageUrl: "/images/escursioni.jpg",
+        imageUrl: "/images/storiaetradizione.jpg",
       },
       {
         label: "Eventi",
         linkTo: "/eventi",
-        imageUrl: "/images/escursioni.jpg",
+        imageUrl: "/images/eventi.jpg",
       },
-      { label: "News", linkTo: "/news", imageUrl: "/images/escursioni.jpg" },
+      { label: "News", linkTo: "/news", imageUrl: "/images/news.jpg" },
       {
         label: "Progetti",
         linkTo: "/progetti",
-        imageUrl: "/images/escursioni.jpg",
+        imageUrl: "/images/progetti.jpg",
       },
       {
         label: "Negozi e Servizi",
         linkTo: "/attivita",
-        imageUrl: "/images/escursioni.jpg",
+        imageUrl: "/images/negozi.jpg",
       },
-      { label: "Cerca il tuo alloggio", linkTo: "/alloggi", isButton: true }, // Bottone speciale
+      {
+        label: "Cerca il tuo alloggio",
+        linkTo: "/alloggi",
+        isButton: true,
+        imageUrl: "/images/alloggi.jpg",
+      },
     ] as SubMenuItem[],
   },
   inCammino: {
@@ -80,22 +85,22 @@ const menuItems = {
       {
         label: "L'Eroica",
         linkTo: "/eroica",
-        imageUrl: "/images/escursioni.jpg",
+        imageUrl: "/images/eroica.jpg",
       },
       {
         label: "Bici da strada",
         linkTo: "/bici-da-strada",
-        imageUrl: "/images/escursioni.jpg",
+        imageUrl: "/images/bici_da_strada.jpg",
       },
       {
         label: "Fuori Strada",
         linkTo: "/fuori-strada",
-        imageUrl: "/images/escursioni.jpg",
+        imageUrl: "/images/mtb.jpg",
       },
       {
         label: "Tutto per la bici",
         linkTo: "/servizi-bici",
-        imageUrl: "/images/escursioni.jpg",
+        imageUrl: "/images/negozi_bici.jpg",
       },
     ] as SubMenuItem[],
   },
@@ -188,7 +193,7 @@ const Header: React.FC = () => {
             <RouterLink to="/">
               <Box
                 component="img"
-                src="/logo.png"
+                src="/logo.svg"
                 alt="Logo Radici in Chianti"
                 sx={{
                   height: "90px",
@@ -442,6 +447,9 @@ const Header: React.FC = () => {
                           variant="contained"
                           color="primary"
                           size="large"
+                          onMouseEnter={() =>
+                            setHoveredImage(item.imageUrl || null)
+                          }
                           sx={{ fontWeight: "bold", borderRadius: "20px" }}
                         >
                           <KingBedOutlinedIcon sx={{ mr: 2 }} />

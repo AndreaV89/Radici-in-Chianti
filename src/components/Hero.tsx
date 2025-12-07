@@ -24,7 +24,7 @@ const Hero: React.FC = () => {
       {/* Video di sfondo (rimane invariato) */}
       <Box
         component="video"
-        src="/hero-video.mp4"
+        src="/hero-prova.mp4"
         autoPlay
         loop
         muted
@@ -44,6 +44,14 @@ const Hero: React.FC = () => {
         {/* Contenitore per il testo e il pulsante */}
         <Box>
           <Typography
+            variant="h1" // Usiamo h1 per il titolo principale, più grande
+            component="h1"
+            fontWeight="bold"
+            sx={{ textShadow: "2px 2px 8px rgba(0,0,0,0.8)", my: 2 }} // my: 2 aggiunge margine sopra e sotto
+          >
+            Radici in Chianti
+          </Typography>
+          <Typography
             variant="h5" // Aumentiamo la dimensione da h6 a h5
             component="p"
             sx={{
@@ -54,15 +62,6 @@ const Hero: React.FC = () => {
             }}
           >
             passato e presente, radici del futuro
-          </Typography>
-
-          <Typography
-            variant="h1" // Usiamo h1 per il titolo principale, più grande
-            component="h1"
-            fontWeight="bold"
-            sx={{ textShadow: "2px 2px 8px rgba(0,0,0,0.8)", my: 2 }} // my: 2 aggiunge margine sopra e sotto
-          >
-            Radici in Chianti
           </Typography>
 
           <Button
