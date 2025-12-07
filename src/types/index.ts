@@ -1,11 +1,15 @@
 export interface WPContent {
   id: number;
   slug: string;
+  date?: string;
   title: {
     rendered: string;
   };
   content: {
     rendered: string;
+  };
+  excerpt?: { 
+    rendered: string; 
   };
     _embedded?: {
     'wp:featuredmedia'?: {
