@@ -54,12 +54,7 @@ const menuItems = {
         linkTo: "/attivita",
         imageUrl: "/images/negozi.jpg",
       },
-      {
-        label: "Cerca il tuo alloggio",
-        linkTo: "/alloggi",
-        isButton: true,
-        imageUrl: "/images/alloggi.jpg",
-      },
+      // RIMOSSO DA QUI: "Cerca il tuo alloggio"
     ] as SubMenuItem[],
   },
   inCammino: {
@@ -138,7 +133,7 @@ const menuItems = {
 };
 
 const Header: React.FC = () => {
-  const { t } = useTranslation(); // Rimuoviamo i18n se non serve per cambiare lingua qui
+  const { t } = useTranslation();
   const [isScrolled, setIsScrolled] = useState(false);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [hoveredImage, setHoveredImage] = useState<string | null>(null);
@@ -206,14 +201,20 @@ const Header: React.FC = () => {
           </Box>
 
           <Box
-            sx={{ flex: 2, display: "flex", justifyContent: "center", gap: 4 }}
+            sx={{
+              flex: 2,
+              display: "flex",
+              justifyContent: "center",
+              gap: 3,
+              alignItems: "center",
+            }}
           >
             <Button
               onClick={() => handleMenuToggle("ilChianti")}
               color="inherit"
               disableRipple
               sx={{
-                fontSize: "1.5rem",
+                fontSize: "1.2rem", // Leggermente ridotto per far spazio
                 fontWeight: "bold",
                 textTransform: "none",
                 "&::after": {
@@ -243,7 +244,7 @@ const Header: React.FC = () => {
               color="inherit"
               disableRipple
               sx={{
-                fontSize: "1.5rem",
+                fontSize: "1.2rem",
                 fontWeight: "bold",
                 textTransform: "none",
                 "&::after": {
@@ -273,7 +274,7 @@ const Header: React.FC = () => {
               color="inherit"
               disableRipple
               sx={{
-                fontSize: "1.5rem",
+                fontSize: "1.2rem",
                 fontWeight: "bold",
                 textTransform: "none",
                 "&::after": {
@@ -303,7 +304,7 @@ const Header: React.FC = () => {
               color="inherit"
               disableRipple
               sx={{
-                fontSize: "1.5rem",
+                fontSize: "1.2rem",
                 fontWeight: "bold",
                 textTransform: "none",
                 "&::after": {
@@ -327,6 +328,27 @@ const Header: React.FC = () => {
               }}
             >
               Chi Siamo
+            </Button>
+
+            {/* NUOVO POSIZIONAMENTO DEL PULSANTE */}
+            <Button
+              component={RouterLink}
+              to="/alloggi"
+              variant="contained"
+              color="primary"
+              sx={{
+                ml: 1, // Un po' di margine a sinistra
+                fontWeight: "bold",
+                borderRadius: "20px",
+                textTransform: "none",
+                fontSize: "1rem",
+                whiteSpace: "nowrap",
+                px: 3,
+                boxShadow: 3,
+              }}
+            >
+              <KingBedOutlinedIcon sx={{ mr: 1 }} />
+              Cerca il tuo alloggio
             </Button>
           </Box>
 
@@ -438,47 +460,29 @@ const Header: React.FC = () => {
             <Container>
               <Grid container spacing={5} alignItems="center">
                 <Grid size={{ xs: 12, md: 6 }}>
-                  {currentData?.subItems.map((item) =>
-                    item.isButton ? (
-                      <Box key={item.label} sx={{ mt: 2 }}>
-                        <Button
-                          component={RouterLink}
-                          to={item.linkTo}
-                          variant="contained"
-                          color="primary"
-                          size="large"
-                          onMouseEnter={() =>
-                            setHoveredImage(item.imageUrl || null)
-                          }
-                          sx={{ fontWeight: "bold", borderRadius: "20px" }}
-                        >
-                          <KingBedOutlinedIcon sx={{ mr: 2 }} />
-                          {item.label}
-                        </Button>
-                      </Box>
-                    ) : (
-                      <MuiLink
-                        component={RouterLink}
-                        to={item.linkTo}
-                        key={item.label}
-                        underline="none"
-                        onMouseEnter={() =>
-                          setHoveredImage(item.imageUrl || null)
-                        }
-                        sx={{
-                          display: "block",
-                          color: "text.primary",
-                          fontSize: "1.5rem",
-                          fontWeight: "bold",
-                          py: 1,
-                          "&:hover": { pl: 1, color: "primary.main" },
-                          transition: "all 0.2s",
-                        }}
-                      >
-                        {item.label}
-                      </MuiLink>
-                    )
-                  )}
+                  {currentData?.subItems.map((item) => (
+                    // Qui abbiamo rimosso il controllo isButton perché non ce ne sono più nei sottomenu
+                    <MuiLink
+                      component={RouterLink}
+                      to={item.linkTo}
+                      key={item.label}
+                      underline="none"
+                      onMouseEnter={() =>
+                        setHoveredImage(item.imageUrl || null)
+                      }
+                      sx={{
+                        display: "block",
+                        color: "text.primary",
+                        fontSize: "1.5rem",
+                        fontWeight: "bold",
+                        py: 1,
+                        "&:hover": { pl: 1, color: "primary.main" },
+                        transition: "all 0.2s",
+                      }}
+                    >
+                      {item.label}
+                    </MuiLink>
+                  ))}
                 </Grid>
                 <Grid size={{ xs: 12, md: 6 }}>
                   <Box

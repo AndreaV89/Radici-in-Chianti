@@ -17,11 +17,16 @@ import {
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import LocationOnIcon from "@mui/icons-material/LocationOn"; // Assicurati che sia importato
+
+// --- ICONE SOCIAL ---
 import FacebookIcon from "@mui/icons-material/Facebook";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
 import XIcon from "@mui/icons-material/X";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import ShareIcon from "@mui/icons-material/Share";
+
 import { Post } from "../types";
 import { getContentBySlug } from "../api";
 
@@ -39,7 +44,6 @@ export default function SinglePost({ postType }: SinglePostProps) {
   const { postSlug } = useParams<{ postSlug: string }>();
   const [post, setPost] = useState<Post | null>(null);
   const [loading, setLoading] = useState(true);
-
   const [openSnackbar, setOpenSnackbar] = useState(false);
 
   useEffect(() => {
@@ -57,11 +61,33 @@ export default function SinglePost({ postType }: SinglePostProps) {
     fetchPost();
   }, [postSlug, postType]);
 
-  // --- LOGICA DI CONDIVISIONE (NUOVO) ---
-  const currentUrl = window.location.href; // L'URL della pagina attuale
-  const title = post?.title.rendered || "Guarda questo articolo!";
+  // --- LOGICA PER IL TASTO INDIETRO (NUOVO) ---
+  const getBackLink = () => {
+    switch (postType) {
+      case "posts":
+        return "/news";
+      case "evento":
+        return "/eventi";
+      case "progetto":
+        return "/progetti";
+      case "escursione":
+        return "/escursioni";
+      case "attivita":
+        return "/attivita";
+      case "alloggio":
+        return "/alloggi";
+      default:
+        return "/";
+    }
+  };
 
+  // --- LOGICA DI CONDIVISIONE ---
   const handleShare = (platform: string) => {
+    const currentUrl = window.location.href;
+    const rawTitle =
+      post?.title.rendered.replace(/<[^>]*>?/gm, "") || "Radici in Chianti";
+    const text = `Guarda questo articolo: "${rawTitle}"`;
+
     let shareUrl = "";
 
     switch (platform) {
@@ -71,8 +97,8 @@ export default function SinglePost({ postType }: SinglePostProps) {
         )}`;
         break;
       case "whatsapp":
-        shareUrl = `https://wa.me/?text=${encodeURIComponent(
-          title + " " + currentUrl
+        shareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(
+          text + " " + currentUrl
         )}`;
         break;
       case "linkedin":
@@ -83,18 +109,47 @@ export default function SinglePost({ postType }: SinglePostProps) {
       case "x":
         shareUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(
           currentUrl
-        )}&text=${encodeURIComponent(title)}`;
+        )}&text=${encodeURIComponent(text)}`;
         break;
       default:
         return;
     }
 
-    // Apre una nuova finestra popup per la condivisione
-    window.open(shareUrl, "_blank", "width=600,height=400");
+    const width = 600;
+    const height = 400;
+    const left = window.innerWidth / 2 - width / 2;
+    const top = window.innerHeight / 2 - height / 2;
+    window.open(
+      shareUrl,
+      "share",
+      `width=${width},height=${height},top=${top},left=${left}`
+    );
+  };
+
+  const handleNativeShare = async () => {
+    const currentUrl = window.location.href;
+    // Rimuoviamo i tag HTML dal titolo per la condivisione
+    const rawTitle =
+      post?.title.rendered.replace(/<[^>]*>?/gm, "") || "Radici in Chianti";
+
+    // CORREZIONE QUI: Usiamo 'share' in navigator invece di navigator.share
+    if ("share" in navigator) {
+      try {
+        await navigator.share({
+          title: rawTitle,
+          text: "Guarda questo contenuto su Radici in Chianti!",
+          url: currentUrl,
+        });
+      } catch (error) {
+        console.log("Condivisione annullata o fallita", error);
+      }
+    } else {
+      handleCopyLink();
+    }
   };
 
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(currentUrl);
+    navigator.clipboard.writeText(window.location.href);
     setOpenSnackbar(true);
   };
 
@@ -109,7 +164,7 @@ export default function SinglePost({ postType }: SinglePostProps) {
   if (!post) {
     return (
       <Container sx={{ my: 10, textAlign: "center" }}>
-        <Typography variant="h5">Articolo non trovato.</Typography>
+        <Typography variant="h5">Contenuto non trovato.</Typography>
         <Button component={RouterLink} to="/" sx={{ mt: 2 }}>
           Torna alla Home
         </Button>
@@ -117,11 +172,9 @@ export default function SinglePost({ postType }: SinglePostProps) {
     );
   }
 
-  // Dati estratti
   const imageUrl = post._embedded?.["wp:featuredmedia"]?.[0]?.source_url;
   const categoryName = post._embedded?.["wp:term"]?.[0]?.[0]?.name;
 
-  // Data formattata
   const date = post.date
     ? new Date(post.date).toLocaleDateString("it-IT", {
         day: "numeric",
@@ -130,28 +183,26 @@ export default function SinglePost({ postType }: SinglePostProps) {
       })
     : null;
 
-  // Stima tempo di lettura (opzionale, calcolato sulle parole)
   const wordCount = post.content.rendered
     .replace(/<[^>]*>/g, "")
     .split(" ").length;
-  const readTime = Math.ceil(wordCount / 200); // media di 200 parole al minuto
+  const readTime = Math.ceil(wordCount / 200);
 
   return (
     <>
-      {/* 1. HERO SECTION DINAMICA */}
+      {/* HERO SECTION */}
       <Box
         sx={{
           position: "relative",
           height: { xs: "40vh", md: "60vh" },
           display: "flex",
-          alignItems: "flex-end", // Testo in basso
+          alignItems: "flex-end",
           backgroundImage: imageUrl ? `url(${imageUrl})` : "none",
           backgroundColor: imageUrl ? "transparent" : "#242424",
           backgroundSize: "cover",
           backgroundPosition: "center",
           color: "white",
           pb: 6,
-          // Overlay sfumato per leggere il testo
           "&::before": {
             content: '""',
             position: "absolute",
@@ -165,16 +216,16 @@ export default function SinglePost({ postType }: SinglePostProps) {
         }}
       >
         <Container maxWidth="lg" sx={{ position: "relative", zIndex: 1 }}>
-          {/* Tasto indietro */}
+          {/* TASTO INDIETRO DINAMICO */}
           <Button
             component={RouterLink}
-            to={postType === "posts" ? "/news" : "/"} // Torna alla lista corretta
+            to={getBackLink()} // <--- Usiamo la funzione qui
             startIcon={<ArrowBackIcon />}
             sx={{
               color: "white",
               mb: 4,
               position: "absolute",
-              top: -150, // Lo posizioniamo in alto a sinistra
+              top: -150,
               left: 0,
               backgroundColor: "rgba(0,0,0,0.2)",
               backdropFilter: "blur(4px)",
@@ -184,7 +235,6 @@ export default function SinglePost({ postType }: SinglePostProps) {
             Torna indietro
           </Button>
 
-          {/* Categoria */}
           {categoryName && (
             <Chip
               label={categoryName}
@@ -193,7 +243,6 @@ export default function SinglePost({ postType }: SinglePostProps) {
             />
           )}
 
-          {/* Titolo */}
           <Typography
             variant="h2"
             component="h1"
@@ -208,27 +257,113 @@ export default function SinglePost({ postType }: SinglePostProps) {
             dangerouslySetInnerHTML={{ __html: post.title.rendered }}
           />
 
-          {/* Metadati (Data e Tempo lettura) */}
           <Box
-            sx={{ display: "flex", gap: 3, opacity: 0.9, fontSize: "0.9rem" }}
+            sx={{
+              display: "flex",
+              gap: 3,
+              opacity: 0.9,
+              fontSize: "0.9rem",
+              flexWrap: "wrap",
+            }}
           >
-            {date && (
-              <Box sx={{ display: "flex", alignItems: "center" }}>
-                <CalendarTodayIcon sx={{ fontSize: 18, mr: 1 }} />
-                {date}
-              </Box>
+            {/* SE È UN EVENTO: Mostra Data Evento e Luogo */}
+            {postType === "evento" ? (
+              <>
+                {post.acf?.data_evento && (
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      bgcolor: "rgba(255,255,255,0.2)",
+                      px: 2,
+                      py: 0.5,
+                      borderRadius: 2,
+                    }}
+                  >
+                    <CalendarTodayIcon sx={{ fontSize: 20, mr: 1 }} />
+                    <Typography fontWeight="bold" sx={{ ml: 1 }}>
+                      {(() => {
+                        const raw = post.acf.data_evento;
+                        if (raw.includes("/")) {
+                          const [d, m, y] = raw.split("/");
+                          const dateObj = new Date(`${y}-${m}-${d}`);
+                          return dateObj.toLocaleDateString("it-IT", {
+                            weekday: "long",
+                            day: "numeric",
+                            month: "long",
+                            year: "numeric",
+                          });
+                        }
+                        // Fallback per formato standard
+                        const dateObj = new Date(raw);
+                        return !isNaN(dateObj.getTime())
+                          ? dateObj.toLocaleDateString("it-IT", {
+                              weekday: "long",
+                              day: "numeric",
+                              month: "long",
+                              year: "numeric",
+                            })
+                          : raw;
+                      })()}
+                    </Typography>
+                  </Box>
+                )}
+                {post.acf?.luogo && (
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      bgcolor: "rgba(255,255,255,0.2)",
+                      px: 2,
+                      py: 0.5,
+                      borderRadius: 2,
+                    }}
+                  >
+                    <LocationOnIcon sx={{ fontSize: 20, mr: 1 }} />
+                    <Typography fontWeight="bold" sx={{ ml: 1 }}>
+                      {post.acf.luogo}
+                    </Typography>
+                  </Box>
+                )}
+                {post.acf?.orario && (
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      bgcolor: "rgba(255,255,255,0.2)",
+                      px: 2,
+                      py: 0.5,
+                      borderRadius: 2,
+                    }}
+                  >
+                    <AccessTimeIcon sx={{ fontSize: 20, mr: 1 }} />
+                    <Typography fontWeight="bold" sx={{ ml: 1 }}>
+                      {post.acf.orario}
+                    </Typography>
+                  </Box>
+                )}
+              </>
+            ) : (
+              /* ALTRIMENTI (ARTICOLI, NEWS ECC) */
+              <>
+                {date && (
+                  <Box sx={{ display: "flex", alignItems: "center" }}>
+                    <CalendarTodayIcon sx={{ fontSize: 18, mr: 1 }} />
+                    Pubblicato il: {date}
+                  </Box>
+                )}
+                <Box sx={{ display: "flex", alignItems: "center" }}>
+                  <AccessTimeIcon sx={{ fontSize: 18, mr: 1 }} />
+                  {readTime} min lettura
+                </Box>
+              </>
             )}
-            <Box sx={{ display: "flex", alignItems: "center" }}>
-              <AccessTimeIcon sx={{ fontSize: 18, mr: 1 }} />
-              {readTime} min lettura
-            </Box>
           </Box>
         </Container>
       </Box>
 
-      {/* 2. CONTENUTO ARTICOLO */}
+      {/* CONTENUTO ARTICOLO */}
       <Container maxWidth="md" sx={{ py: 8 }}>
-        {/* Questo Box gestisce lo stile dell'HTML grezzo di WordPress */}
         <Box
           className="wordpress-content"
           sx={{
@@ -265,13 +400,8 @@ export default function SinglePost({ postType }: SinglePostProps) {
               my: 3,
               boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
             },
-            "& ul, & ol": {
-              mb: 3,
-              pl: 4,
-            },
-            "& li": {
-              mb: 1,
-            },
+            "& ul, & ol": { mb: 3, pl: 4 },
+            "& li": { mb: 1 },
             "& a": {
               color: "primary.main",
               textDecoration: "underline",
@@ -283,18 +413,30 @@ export default function SinglePost({ postType }: SinglePostProps) {
 
         <Divider sx={{ my: 6 }} />
 
+        {/* SEZIONE CONDIVISIONE */}
         <Box sx={{ textAlign: "center" }}>
           <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold" }}>
-            Condividi questo articolo
+            Condividi questo contenuto
           </Typography>
 
           <Stack
             direction="row"
             spacing={1}
             justifyContent="center"
-            sx={{ mb: 4 }}
+            sx={{ mb: 4, flexWrap: "wrap", gap: 1 }}
           >
-            <Tooltip title="Condividi su WhatsApp">
+            {"share" in navigator && (
+              <Tooltip title="Condividi">
+                <IconButton
+                  onClick={handleNativeShare}
+                  sx={{ bgcolor: "action.hover", color: "text.primary" }}
+                >
+                  <ShareIcon fontSize="large" />
+                </IconButton>
+              </Tooltip>
+            )}
+
+            <Tooltip title="WhatsApp">
               <IconButton
                 onClick={() => handleShare("whatsapp")}
                 color="success"
@@ -303,7 +445,7 @@ export default function SinglePost({ postType }: SinglePostProps) {
               </IconButton>
             </Tooltip>
 
-            <Tooltip title="Condividi su Facebook">
+            <Tooltip title="Facebook">
               <IconButton
                 onClick={() => handleShare("facebook")}
                 color="primary"
@@ -312,13 +454,13 @@ export default function SinglePost({ postType }: SinglePostProps) {
               </IconButton>
             </Tooltip>
 
-            <Tooltip title="Condividi su LinkedIn">
+            <Tooltip title="LinkedIn">
               <IconButton onClick={() => handleShare("linkedin")} color="info">
                 <LinkedInIcon fontSize="large" />
               </IconButton>
             </Tooltip>
 
-            <Tooltip title="Condividi su X">
+            <Tooltip title="X (Twitter)">
               <IconButton
                 onClick={() => handleShare("x")}
                 sx={{ color: "black" }}
@@ -337,22 +479,19 @@ export default function SinglePost({ postType }: SinglePostProps) {
             </Tooltip>
           </Stack>
 
-          <Typography variant="body2" color="text.secondary" gutterBottom>
-            Ti è piaciuto?
-          </Typography>
           <Button
             variant="outlined"
             size="large"
             component={RouterLink}
-            to="/news"
+            to={getBackLink()} // Rimanda alla lista corretta anche da qui
             sx={{ borderRadius: "30px", mt: 1 }}
           >
-            Leggi altre notizie
+            Torna alla lista
           </Button>
         </Box>
       </Container>
 
-      {/* --- SNACKBAR PER NOTIFICA COPIA (NUOVO) --- */}
+      {/* SNACKBAR */}
       <Snackbar
         open={openSnackbar}
         autoHideDuration={3000}
